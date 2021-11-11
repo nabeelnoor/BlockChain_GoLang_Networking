@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
 	"log"
 	"net"
+	"fmt"
 	//"o«s"
 )
 
@@ -14,12 +15,14 @@ type Client struct {
 }
 
 func handleConnection(c net.Conn, msgchan chan string, addchan chan Client) {
-
+	nickName := make([]byte, 120)
 	c.Write([]byte("Please Enter Your NickName:\n"))
-	clientReader := bufio.NewReader(c)
-	nickName, _, _ := clientReader.ReadLine()
+	c.Read(nickName)
+	//clientReader := bufio.NewReader(c)
+	//nickName, _, _ := clientReader.ReadLine()
 
 	newClient := Client{connection: c, nickname: string(nickName) + ": "}
+	fmt.Println("Sending new client in channel")
 	addchan <- newClient
 
 	buf := make([]byte, 4096)
@@ -54,15 +57,15 @@ func printMessages(msgchan chan string, addchan chan Client) {
 
 func main() {
 
-	ln, err := net.Listen("tcp", ":2500")
+	ln, err := net.Listen("tcp", ":8000")
 	if err != nil {
 		log.Fatal(err)
 	}
-	addchan := make(chan Client)
+	addchan := make(chan Client) //making of channel
 	msgchan := make(chan string)
-	go printMessages(msgchan, addchan)
+	go printMessages(msgchan, addchan) //making of subroutine that print msg
 
-	for {
+	for { //this loop handles new connection
 		conn, err := ln.Accept()
 		if err != nil {
 			log.Println(err)

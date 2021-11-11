@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:6000")
+	conn, err := net.Dial("tcp", "localhost:8000")
 	if err != nil {
 		// handle error
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"fmt"
 )
 
 func main() {
@@ -18,11 +19,13 @@ func main() {
 		}
 		go handleConnection(conn)
 	}
+	fmt.Println("asdasd")
 }
 
 func handleConnection(c net.Conn) {
 
 	log.Println("A client has connected", c.RemoteAddr())
 	c.Write([]byte("Hello world"))
+	fmt.Println("handle executed")
 
 }
