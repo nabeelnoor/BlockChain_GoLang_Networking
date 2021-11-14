@@ -2,9 +2,9 @@ package main
 
 import (
 	// "bufio"
+	"fmt"
 	"log"
 	"net"
-	"fmt"
 	//"o«s"
 )
 
@@ -14,6 +14,7 @@ type Client struct {
 	nickname   string
 }
 
+//single instance for each client
 func handleConnection(c net.Conn, msgchan chan string, addchan chan Client) {
 	nickName := make([]byte, 120)
 	c.Write([]byte("Please Enter Your NickName:\n"))
