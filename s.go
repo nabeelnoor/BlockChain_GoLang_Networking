@@ -17,7 +17,7 @@ type Client struct {
 //single instance for each client
 func handleConnection(c net.Conn, msgchan chan string, addchan chan Client) {
 	nickName := make([]byte, 120)
-	c.Write([]byte("Please Enter Your NickName:\n"))
+	c.Write([]byte("Please Enter Your NickName:"))
 	c.Read(nickName)
 	//clientReader := bufio.NewReader(c)
 	//nickName, _, _ := clientReader.ReadLine()

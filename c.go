@@ -30,7 +30,7 @@ func main() {
 	}
 	recvdSlice := make([]byte, 30)
 	conn.Read(recvdSlice)
-	fmt.Println(string(recvdSlice))
+	fmt.Print(string(recvdSlice))
 	var buffer string
 	fmt.Scanln(&buffer)
 	conn.Write([]byte(buffer))
