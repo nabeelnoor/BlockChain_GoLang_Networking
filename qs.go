@@ -15,7 +15,7 @@ type Node struct {
 	connection net.Conn
 }
 
-func stringifyBlocks(chainHead *a2.Block) string {
+func stringifyBlocks(chainHead *a2.Block) string { //this function is create to completely stringify block chain,so that it can be send on network when converted to bytes.
 	var ret string
 	ret += fmt.Sprintf("\n\n--------------------------Listing Blocks (most recent first) ... ---------------------\n")
 	var currPtr = chainHead
@@ -32,33 +32,35 @@ func stringifyBlocks(chainHead *a2.Block) string {
 }
 
 func centralRoutine(clientCh chan Node) {
-	//this is the area where block chain is formed,update and send to clients
-	/*Complete the code below*/
-	// invoking centralRoutine - being used for storing connections and handling clientChannel
-
 	/*
+		Complete the code below
+		invoking centralRoutine - being used for storing connections and handling clientChannel
+		this is the area where block chain is formed,update and send to clients
 		handling list of connection
 		inform other clients about nodes
 	*/
-	clientsSlice := make([]Node, 0, 20)
+	clientsSlice := make([]Node, 0, 20) //slice to store information of clients that connect to satoshi
+	//creation of blockchain and premine x number of blocks, let x=2
 	var chainHead *a2.Block
 	chainHead = a2.PremineChain(chainHead, 2) //premine x number of blocks
 	tempo := stringifyBlocks(chainHead)
 	fmt.Printf(tempo)
+
+	//here block chain is update(adding of transaction) and send to all clients whenever new client is connected
 	for {
 		select {
-		case newClient := <-clientCh:
-			clientsSlice = append(clientsSlice, newClient)
+		case newClient := <-clientCh: //if there is new client arrived
+			clientsSlice = append(clientsSlice, newClient) //append new client information
 			log.Println("new client has arrived")
 
-			//adding its block in block chain
+			//adding transaction for new client and adding its block in block chain
 			curTitle := fmt.Sprintf("SatoshiTo%s", newClient.NodeID)
 			GiftbySatoshi := []a2.BlockData{{Title: curTitle, Sender: "Satoshi", Receiver: newClient.NodeID, Amount: 10}}
 			chainHead = a2.InsertBlock(GiftbySatoshi, chainHead)
 
-			//send updated block chain to all
+			//send updated block chain to all clients
 			updatedBL := stringifyBlocks(chainHead)
-			//send to all
+			//sending to all clients
 			for _, someClient := range clientsSlice {
 				someClient.connection.Write([]byte(updatedBL))
 			}
@@ -69,18 +71,23 @@ func centralRoutine(clientCh chan Node) {
 
 func satoshiClientHandler(conn net.Conn, clientCh chan Node) {
 	log.Println("Receiving node ID from the node")
-	/*Complete the code below*/
-	//please enter your node id
-	//recv node id
-	//send through channel to main sub routine
+	/*	//- invoking satoshiClientHandler - being used for handling each client node
+		Complete the code below
+		1.please enter your node id
+		2.recv node id
+		3.send through channel to centralRoutine
+	*/
 
-	//- invoking satoshiClientHandler - being used for handling each client node
+	//Asking nodeID from node
 	enterID := make([]byte, 120)
 	conn.Write([]byte("Please Enter Your NodeId:"))
-	n, _ := conn.Read(enterID)
-	ClientNode := Node{connection: conn, NodeID: string(enterID[0:n])}
-	clientCh <- ClientNode
+	n, _ := conn.Read(enterID)                                         //Recieving that nodeID
+	ClientNode := Node{connection: conn, NodeID: string(enterID[0:n])} //making node struct for new client
+	clientCh <- ClientNode                                             //sending to "Node struct" to centralRoutine through channel
 
+	/*just reading from node (not required in question) as client only send nodeid and then recv
+	blockchain on occassion of updates
+	*/
 	buf := make([]byte, 4096)
 	for {
 		n, err := conn.Read(buf)
@@ -101,18 +108,18 @@ func satoshiClientHandler(conn net.Conn, clientCh chan Node) {
 
 func main() {
 	satoshiAddress := ":2020"
-	var clientChannel = make(chan Node)
-	ln, err := net.Listen("tcp", satoshiAddress)
+	var clientChannel = make(chan Node)          //making channel to communicate between sub routines
+	ln, err := net.Listen("tcp", satoshiAddress) //listening at port 2020
 	if err != nil {
 		log.Fatal(err)
 	}
-	go centralRoutine(clientChannel)
+	go centralRoutine(clientChannel) //invoking centralRoutine (thread that run in parallel)
 	for {
-		conn, err := ln.Accept()
+		conn, err := ln.Accept() //accepting dial from nodes
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		go satoshiClientHandler(conn, clientChannel)
+		go satoshiClientHandler(conn, clientChannel) //invoking satoshiClientHandler (thread that run in parallel)
 	}
 }

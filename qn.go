@@ -20,13 +20,14 @@ func main() {
 
 	/* Add code below to send NodeID to Satoshi */
 	recvdSlice := make([]byte, 30)
-	conn.Read(recvdSlice)
+	conn.Read(recvdSlice) //reading "asking of nodeid from satoshi"
 	fmt.Print(string(recvdSlice))
 	var buffer string
-	fmt.Scanln(&buffer)
-	conn.Write([]byte(buffer))
+	fmt.Scanln(&buffer)        //input of nodeid
+	conn.Write([]byte(buffer)) //sending nodeid to Satoshi
 
 	/*Provide code below to receive and print the chain */
+	//recv blockChain from satoshi
 	recvdSlice2 := make([]byte, 500)
 	for {
 		fmt.Println("In Output Phase")
