@@ -2,10 +2,12 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"net"
+
 	//assume others to be present here
-	// a2 "github.com/ehteshamz/assignment02IBC"
+	a2 "github.com/nabeelnoor/assignment02IBC"
 )
 
 func main() {
@@ -28,11 +30,12 @@ func main() {
 
 	/*Provide code below to receive and print the chain */
 	//recv blockChain from satoshi
-	recvdSlice2 := make([]byte, 500)
+	var chainHead *a2.Block
+	dec := gob.NewDecoder(conn) //making of decoder
 	for {
 		fmt.Println("In Output Phase")
-		conn.Read(recvdSlice2)
-		fmt.Println(string(recvdSlice2))
+		dec.Decode(&chainHead) //recieving blockchain
+		a2.ListBlocks(chainHead)
 	}
 
 	select {}

@@ -2,6 +2,7 @@ package main
 
 import (
 	//assume others to be present here
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net"
@@ -13,22 +14,6 @@ type Node struct {
 	NodeID string
 	/*Complete the code below */
 	connection net.Conn
-}
-
-func stringifyBlocks(chainHead *a2.Block) string { //this function is create to completely stringify block chain,so that it can be send on network when converted to bytes.
-	var ret string
-	ret += fmt.Sprintf("\n\n--------------------------Listing Blocks (most recent first) ... ---------------------\n")
-	var currPtr = chainHead
-	for currPtr != nil { //for block iteration
-		ret += fmt.Sprintf("\n-----------------Block-----------------\n")
-		// fmt.Println("Following are its transactions:-")
-		for i := 0; i < len(currPtr.Data); i++ { //for iterations of transactions
-			ret += fmt.Sprintf("Transaction %d : {Title:%s Sender:%s Receiver:%s Amount: %d} \n", (i + 1), currPtr.Data[i].Title, currPtr.Data[i].Sender, currPtr.Data[i].Receiver, currPtr.Data[i].Amount)
-		}
-		currPtr = currPtr.PrevPointer
-	}
-	ret += fmt.Sprintf("--------------------------------------------------------------------------------------\n\n ")
-	return ret
 }
 
 func centralRoutine(clientCh chan Node) {
@@ -43,8 +28,6 @@ func centralRoutine(clientCh chan Node) {
 	//creation of blockchain and premine x number of blocks, let x=2
 	var chainHead *a2.Block
 	chainHead = a2.PremineChain(chainHead, 2) //premine x number of blocks
-	tempo := stringifyBlocks(chainHead)
-	fmt.Printf(tempo)
 
 	//here block chain is update(adding of transaction) and send to all clients whenever new client is connected
 	for {
@@ -59,12 +42,12 @@ func centralRoutine(clientCh chan Node) {
 			chainHead = a2.InsertBlock(GiftbySatoshi, chainHead)
 
 			//send updated block chain to all clients
-			updatedBL := stringifyBlocks(chainHead)
-			//sending to all clients
 			for _, someClient := range clientsSlice {
-				someClient.connection.Write([]byte(updatedBL))
+				enc := gob.NewEncoder(someClient.connection)
+				enc.Encode(chainHead)
+				//someClient.connection.Write([]byte(updatedBL))
 			}
-			log.Printf("new message:-\n %s", updatedBL)
+			a2.ListBlocks(chainHead)
 		}
 	}
 }
